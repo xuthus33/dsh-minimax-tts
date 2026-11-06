@@ -72,7 +72,9 @@ $DestDir     = Join-Path $ProfileDir "node_modules\@luna\dsh-minimax-tts"
 
 # --- 定位插件源 ---
 if ([string]::IsNullOrWhiteSpace($SourcePath)) {
+    $parent = Split-Path $PSScriptRoot -Parent
     $candidates = @(
+        $parent,
         (Join-Path $PSScriptRoot "luna-tts"),
         (Join-Path $PSScriptRoot "dsh-minimax-tts"),
         (Join-Path $env:USERPROFILE ".deepseek-harness\plugins\@luna\dsh-minimax-tts")

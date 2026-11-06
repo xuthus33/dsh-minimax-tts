@@ -64,6 +64,16 @@ cd dsh-minimax-tts
 
 详细说明见 [README-WINDOWS.md](README-WINDOWS.md)。
 
+### 装完之后：别删 clone 目录
+
+安装脚本会把 `file:` 依赖登记成**克隆目录的路径**。`node_modules` 里已经有一份完整副本，
+所以删掉 clone 之后插件**照常运行**；但下次再跑安装/升级脚本会找不到源，需要重新 clone，
+或者用 `--source` 指回去：
+
+```bash
+bash scripts/luna-tts-install.sh --apply --source /path/to/dsh-minimax-tts
+```
+
 ### 配置密钥
 
 三种方式任选（按顺序查找）：

@@ -21,7 +21,17 @@
 set -u
 
 PKG="@luna/dsh-minimax-tts"
-SRC="$HOME/.deepseek-harness/plugins/@luna/dsh-minimax-tts"
+# 插件源目录：优先用「脚本所在目录的上一级」（= clone / 解压后的仓库根），
+# 这样从 GitHub 克隆下来直接就能装；找不到才回落到本机开发路径。
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+_REPO_ROOT="$(cd "$SCRIPT_DIR/.." 2>/dev/null && pwd || true)"
+if [ -n "$_REPO_ROOT" ] && [ -f "$_REPO_ROOT/package.json" ] && [ -d "$_REPO_ROOT/lib" ]; then
+  SRC="$_REPO_ROOT"
+else
+  SRC="$HOME/.deepseek-harness/plugins/@luna/dsh-minimax-tts"
+fi
+# 可用环境变量覆盖
+SRC="${LUNA_TTS_SOURCE:-$SRC}"
 PROFILE_NAME="desktop"
 APPLY=0
 UNINSTALL=0
@@ -30,12 +40,14 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --apply) APPLY=1; shift ;;
     --uninstall) UNINSTALL=1; shift ;;
+    --source) LUNA_TTS_SOURCE_OVERRIDE="${2:-}"; shift 2 ;;
     --profile) PROFILE_NAME="${2:-}"; shift 2 ;;
     -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
     *) echo "未知参数: $1"; exit 2 ;;
   esac
 done
 
+if [ -n "${LUNA_TTS_SOURCE_OVERRIDE:-}" ]; then SRC="$LUNA_TTS_SOURCE_OVERRIDE"; fi
 PROFILE_DIR="$HOME/.dsh/profiles/$PROFILE_NAME"
 PROFILE_JSON="$PROFILE_DIR/package.json"
 DST="$PROFILE_DIR/node_modules/@luna/dsh-minimax-tts"
