@@ -1,0 +1,18 @@
+# @luna/dsh-minimax-tts — bundle patch
+#
+# 作用：把本插件注册成 cordis loader 的一条 entry。
+# 注意：本行 config 是**整行替换**（patch 不做深合并），
+# 这里没写的键由 lib/index.js 的 schemastery Config 默认值补齐。
+#
+# 回滚：把 "@luna/dsh-minimax-tts" 从 profile 的 dsh.profile.bundles 与
+# dependencies 里删掉即可（本文件不必删）。
+
+- insert:
+    - id: '@luna/dsh-minimax-tts'
+      name: '@luna/dsh-minimax-tts'
+      config:
+        apiPath: /luna-tts/speak
+        healthPath: /luna-tts/health
+        voice: female-shaonv
+        model: speech-2.8-hd
+        speed: 0.95

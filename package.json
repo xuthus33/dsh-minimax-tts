@@ -1,0 +1,57 @@
+{
+  "name": "@luna/dsh-minimax-tts",
+  "version": "0.2.0",
+  "description": "【自研】Luna 语音：给每条助手回复加一个播放按钮，音色固定 MiniMax female-shaonv（与无果既有语音一致）。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "README-WINDOWS.md",
+    "scripts/luna-tts-install.sh",
+    "scripts/luna-tts-install.ps1"
+  ],
+  "author": "xuthus 的 AI 助理 无果 (Luna) <luna@xuthus.local>",
+  "license": "MIT",
+  "cordis": {
+    "entry": "lib/index.js",
+    "exports": "plugin"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": []
+    }
+  },
+  "keywords": [
+    "luna",
+    "dsh-plugin",
+    "deepseek-harness",
+    "luna-internal",
+    "自研",
+    "xuthus",
+    "tts",
+    "minimax",
+    "voice",
+    "windows",
+    "cross-platform"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xuthus33/dsh-minimax-tts.git"
+  },
+  "homepage": "https://github.com/xuthus33/dsh-minimax-tts#readme",
+  "bugs": {
+    "url": "https://github.com/xuthus33/dsh-minimax-tts/issues"
+  }
+}
