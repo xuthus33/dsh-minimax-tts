@@ -8,16 +8,17 @@
 ## 一、先看这个包是什么
 
 ```
-luna-tts-windows/
-├── luna-tts-install.ps1     ← 安装脚本（不跑 pnpm）
-├── README-WINDOWS.md        ← 本文件
-└── luna-tts/                ← 插件本体（纯 JS，零依赖）
-    ├── package.json
-    ├── cordis.patch.yml
-    ├── README.md
-    └── lib/
-        ├── index.js         ← 宿主半：HTTP 路由 + MiniMax 调用 + 会话正文回查
-        └── client.js        ← 浏览器半：回复下方的朗读按钮
+dsh-minimax-tts/                 ← 仓库根 = 插件本体（package.json 就在这一层）
+├── package.json
+├── cordis.patch.yml
+├── README.md                    ← 主说明（安装方式 A/B/C）
+├── README-WINDOWS.md            ← 本文件
+├── lib/
+│   ├── index.js                 ← 宿主半：HTTP 路由 + MiniMax 调用 + 会话正文回查
+│   └── client.js                ← 浏览器半：回复下方的朗读按钮
+└── scripts/
+    ├── luna-tts-install.ps1     ← Windows 安装脚本（不跑 pnpm）
+    └── luna-tts-install.sh      ← macOS/Linux 等价脚本
 ```
 
 **零第三方依赖**（`dependencies: {}`），不编译、不下载模型、不跑 pnpm。
@@ -31,7 +32,7 @@ luna-tts-windows/
 | DeepSeek Harness | 0.2.x | 用到 `conversation.chat.assistant-actions` 槽 |
 | MiniMax 密钥 | 必备 | 见第三节，三种方式任选 |
 | 网络 | 能访问 `api.minimaxi.com` | |
-| Node | 18+ | dsh 自带；22.15+ 才有 zstd 解压（老版本会自动降级，不影响使用）|
+| Node | 可选 | dsh 桌面版自带 node；**不需要**加到 PATH（不在 PATH 时安装脚本自动跳过语法校验）|
 
 ---
 
@@ -68,14 +69,15 @@ icacls "$env:USERPROFILE\.openclaw\workspace\secrets\minimax-code-plan.key" /inh
 ## 四、安装
 
 ```powershell
-# 1. 解压后进入目录
-cd luna-tts-windows
+# 1. 克隆（或直接下载 ZIP 解压）
+git clone https://github.com/xuthus33/dsh-minimax-tts.git
+cd dsh-minimax-tts
 
 # 2. 先看它要做什么（不改任何东西）
-.\luna-tts-install.ps1
+.\scripts\luna-tts-install.ps1
 
 # 3. 确认没问题再执行
-.\luna-tts-install.ps1 -Apply
+.\scripts\luna-tts-install.ps1 -Apply
 ```
 
 如果 dsh 数据不在默认位置：
@@ -87,12 +89,12 @@ cd luna-tts-windows
 **执行脚本被系统拦下时**（执行策略）：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\luna-tts-install.ps1 -Apply
+powershell -ExecutionPolicy Bypass -File .\scripts\luna-tts-install.ps1 -Apply
 ```
 
 ### 脚本做了什么
 
-1. 复制 `luna-tts\` 到 `%USERPROFILE%\.dsh\profiles\<profile>\node_modules\@luna\dsh-minimax-tts\`
+1. 复制**仓库根目录**到 `%USERPROFILE%\.dsh\profiles\<profile>\node_modules\@luna\dsh-minimax-tts\`（真目录，不是软链）
 2. 在 profile 的 `package.json` 里登记 `dependencies` 和 `dsh.profile.bundles`
 3. 改之前先备份成 `package.json.bak-luna-tts-<时间戳>`
 4. 校验：node import 宿主半、客户端半语法、JSON 合法性
@@ -110,7 +112,8 @@ powershell -ExecutionPolicy Bypass -File .\luna-tts-install.ps1 -Apply
 
 ```powershell
 # 健康检查（端口以实际为准，见 GUI 地址）
-curl.exe -s http://127.0.0.1:53332/luna-tts/health
+# 端口取 GUI 地址里的那个（见应用窗口地址栏 / 启动日志）
+curl.exe -s http://127.0.0.1:<端口>/luna-tts/health
 ```
 
 期望返回：
@@ -124,7 +127,7 @@ curl.exe -s http://127.0.0.1:53332/luna-tts/health
 手动测合成（不经界面）：
 
 ```powershell
-curl.exe -s -X POST http://127.0.0.1:53332/luna-tts/speak `
+curl.exe -s -X POST http://127.0.0.1:<端口>/luna-tts/speak `
   -H "content-type: application/json" `
   -d "{\"text\":\"This is a test.\"}" -o test.mp3
 ```
@@ -143,7 +146,7 @@ curl.exe -s -X POST http://127.0.0.1:53332/luna-tts/speak `
 ## 七、卸载 / 回滚
 
 ```powershell
-.\luna-tts-install.ps1 -Apply -Uninstall
+.\scripts\luna-tts-install.ps1 -Apply -Uninstall
 ```
 
 或者手动回滚：把 `package.json.bak-luna-tts-<时间戳>` 覆盖回 `package.json`，再删掉

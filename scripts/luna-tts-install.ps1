@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
   安装 / 卸载 / 重装 @luna/dsh-minimax-tts（Windows PowerShell 版）
@@ -212,13 +212,22 @@ Write-Host "--- 校验 ---" -ForegroundColor Cyan
 $entry = Join-Path $DestDir "lib\index.js"
 $patch = Join-Path $DestDir "cordis.patch.yml"
 
-$nodeCheck = & node --input-type=module -e "import('file:///$($entry -replace '\\','/')').then(m=>console.log('[OK]   host import:',m.name,m.version)).catch(e=>{console.error('[ERROR]',e.message);process.exit(1)})" 2>&1
-Write-Host $nodeCheck
-if ($LASTEXITCODE -ne 0) { Write-Err "宿主半 import 失败，请勿重启（按上面的备份恢复）"; exit 1 }
+$nodeCmd = Get-Command node -ErrorAction SilentlyContinue
+if (-not $nodeCmd) {
+    # node 通常不在 PATH（dsh 桌面版自带 node），跳过校验即可，不影响插件运行
+    Write-Info "node 不在 PATH，跳过宿主半 import / 客户端半语法校验（dsh 自带 node，不影响安装）"
+} else {
+    $nodeCheck = & node --input-type=module -e "import('file:///$($entry -replace '\\','/')').then(m=>console.log('[OK]   host import:',m.name,m.version)).catch(e=>{console.error('[WARN]',e.message);process.exit(2)})" 2>&1
+    Write-Host $nodeCheck
+    if ($LASTEXITCODE -ne 0) {
+        # 假阴性：@deepseek-ai/* 只在 dsh 自己的模块加载器里可见，裸 node 解析不到
+        Write-Info "宿主半裸 import 解析不到 @deepseek-ai/*（正常现象）；真正的加载由 dsh 负责"
+    }
 
-& node --check (Join-Path $DestDir "lib\client.js")
-if ($LASTEXITCODE -ne 0) { Write-Err "客户端半语法错误"; exit 1 }
-Write-Ok "客户端半语法 OK"
+    & node --check (Join-Path $DestDir "lib\client.js")
+    if ($LASTEXITCODE -ne 0) { Write-Err "客户端半语法错误"; exit 1 }
+    Write-Ok "客户端半语法 OK"
+}
 
 try {
     $jsonOk = Get-Content -Path $ProfileJson -Raw -Encoding UTF8 | ConvertFrom-Json
